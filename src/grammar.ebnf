@@ -1,0 +1,126 @@
+@@grammar::SIMS
+@@whitespace::None
+
+start
+	=
+	sections:{section}+
+	$
+	;
+
+section
+	=
+	| meta_section
+	| data_section
+	| meta_csv_section
+	;
+
+meta_section
+	=
+	header:meta_section_header eol
+	empty_line
+	body:meta_body
+	empty_lines
+	;
+	     
+meta_section_header
+	=
+	header_begin @:meta_section_header_name header_end
+	;
+
+meta_body
+	=
+	{ subsections+:meta_subsection ~ | (param:non_empty_string ";" ~ value:string [";"] eol) }+
+	;
+
+meta_subsection
+	=
+	name:non_empty_string eol
+	{param:non_empty_string ";" ~ value:string [";"] eol}+
+	;
+
+meta_section_header_name
+	=
+	| "DATA FILES"
+	| "ANALYSIS POSITION"
+	| "ANALYSIS RECIPE"
+	| "ACQUISITION PARAMETERS"
+	| "MAIN ANALYTICAL PARAMETERS (MAP)"
+	| "OPTIONAL INSTRUMENTAL PARAMETERS (OIP)"
+	| "ION DETECTOR PARAMETERS"
+	| "OTHERS"
+	| "CALIBRATION PARAMETERS"
+	;
+
+
+data_section
+	=
+	header:data_section_header eol
+	empty_line
+	body:data_body
+	empty_line
+	'*** DATA END ***' eol
+	empty_lines
+	;
+
+data_section_header
+	=
+	header_begin @:"DATA START" header_end
+	;
+
+data_body
+	=
+	sample:non_empty_string eol
+	table_header:data_table_header eol
+	data_header:csv_data_header
+	data:{ csv_line }+
+	;
+
+data_table_header
+	=
+	@:{string {";"}+}+
+	;
+
+csv_data_header
+	=
+	@+:(non_empty_string) {";" @+:(non_empty_string) }+ [";"] eol
+	;
+
+meta_csv_section
+	=
+	header:meta_csv_section_header eol
+	empty_line
+	data:meta_csv_body
+	empty_lines
+	;
+		
+meta_csv_section_header
+	=
+	header_begin name:"MEASUREMENT CONDITIONS, " file:/([^ \n]+)/ header_end ":"
+	;
+
+meta_csv_body
+	=
+	@:{ csv_line }+
+	;
+
+csv_line
+	=
+	@+:string {";" @+:string}+ eol
+	;
+
+string::str
+	=
+	/[^\n;]*/
+	;
+
+non_empty_string::str
+	=
+	/[^\n;]+/
+	;
+
+header_begin = "*** " ;
+header_end = " ***" ;
+
+empty_lines = {empty_line}+ ;
+empty_line = eol ;
+eol = "\n" ;
