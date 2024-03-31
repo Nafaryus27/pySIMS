@@ -9,9 +9,9 @@ start
 
 section
 	=
-	| meta_section
-	| data_section
-	| meta_csv_section
+	| metadata:meta_section
+	| data:data_section
+	| metadata:meta_csv_section
 	;
 
 meta_section
@@ -29,13 +29,18 @@ meta_section_header
 
 meta_body
 	=
-	{ subsections+:meta_subsection ~ | (param:non_empty_string ";" ~ value:string [";"] eol) }+
+	{ subsections+:meta_subsection | lines+:meta_section_line }+
 	;
 
 meta_subsection
 	=
 	name:non_empty_string eol
-	{param:non_empty_string ";" ~ value:string [";"] eol}+
+	lines:{meta_section_line}+
+	;
+
+meta_section_line
+	=
+	param:non_empty_string ";" ~ value:string [";"] eol
 	;
 
 meta_section_header_name
@@ -95,7 +100,7 @@ meta_csv_section
 		
 meta_csv_section_header
 	=
-	header_begin name:"MEASUREMENT CONDITIONS, " file:/([^ \n]+)/ header_end ":"
+	header_begin section_name:"MEASUREMENT CONDITIONS" ", " file:/([^ \n]+)/ header_end ":"
 	;
 
 meta_csv_body

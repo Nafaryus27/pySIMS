@@ -8,9 +8,23 @@ class Semantic:
     def __init__(self):
         pass
 
+    def meta_section_line(self, ast):
+        return [ast.param, ast.value]
+
+    def meta_subsection(self, ast):
+        return(ast.name, dict(ast.lines))
+        
     def meta_section(self, ast):
-        params = {param:ast.body.value[i] for i,param in enumerate(ast.body.param)}
+        params = dict(ast.body.lines)
+        if ast.body.subsections:
+            subsections = dict(ast.body.subsections)
+            params.update(subsections)
         return params
+
+    def meta_csv_section(self, ast):
+        section_name = ast.header.section_name.lower()
+        data = ast.data
+        return {section_name: data}
 
     def data_section(self, ast):
         body = ast.body
@@ -26,7 +40,16 @@ class Semantic:
             data_dict[elem] = {data_header[i+j]:values(j) for j in range(nb_columns)}
         return(data_dict)
 
-        
+    def start(self, ast):
+        sections = ast.sections
+        metadata = {}
+        data = {}
+        for section in sections:
+            if "metadata" in section:
+                metadata.update(section["metadata"])
+            if "data" in section:
+                data.update(section["data"])
+        return {"data":data,"metadata":metadata}
         
         
 def parse_with_semantic(data, grammar):
@@ -40,9 +63,9 @@ if __name__ == '__main__':
     with open('grammar.ebnf') as f:
         grammar = f.read()
 
-    with open('../Data/E3SITEST84.nrj_rpc_txt', 'r', encoding="latin1") as f:
+#    with open('../Data/E3SITEST84.nrj_rpc_txt', 'r', encoding="latin1") as f:
 #    with open('../Data/D3GZ46.dp_rpc_txt', 'r', encoding="latin1") as f:
-#    with open('../Data/D4GZ46.ms_rpc_txt', 'r', encoding="latin1") as f:
+    with open('../Data/D4GZ46.ms_rpc_txt', 'r', encoding="latin1") as f:
         data = f.read()
     
     parse_with_semantic(data, grammar)
