@@ -1,5 +1,3 @@
-import json
-from pprint import pprint
 import tatsu
 
 _str2float = lambda s: float(s or 0)
@@ -19,6 +17,16 @@ class Semantic:
         if ast.body.subsections:
             subsections = dict(ast.body.subsections)
             params.update(subsections)
+        return params
+
+    def calib_species_subsection(self, ast):
+        return [ast.name, dict(ast.params)]
+
+    def calib_param_section(self, ast):
+        section_name = ast.header.lower()
+        params = dict(ast.body.lines)
+        species = {section_name: dict(ast.body.species)}
+        params.update(species)
         return params
 
     def meta_csv_section(self, ast):
@@ -50,22 +58,9 @@ class Semantic:
             if "data" in section:
                 data.update(section["data"])
         return {"data":data,"metadata":metadata}
-        
-        
+
 def parse_with_semantic(data, grammar):
     parser = tatsu.compile(grammar)
     ast = parser.parse(data, semantics=Semantic())
+    return(ast)
 
-    pprint(ast)
-    
-if __name__ == '__main__':
-
-    with open('grammar.ebnf') as f:
-        grammar = f.read()
-
-#    with open('../Data/E3SITEST84.nrj_rpc_txt', 'r', encoding="latin1") as f:
-#    with open('../Data/D3GZ46.dp_rpc_txt', 'r', encoding="latin1") as f:
-    with open('../Data/D4GZ46.ms_rpc_txt', 'r', encoding="latin1") as f:
-        data = f.read()
-    
-    parse_with_semantic(data, grammar)

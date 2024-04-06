@@ -12,6 +12,7 @@ section
 	| metadata:meta_section
 	| data:data_section
 	| metadata:meta_csv_section
+	| metadata:calib_param_section
 	;
 
 meta_section
@@ -53,9 +54,7 @@ meta_section_header_name
 	| "OPTIONAL INSTRUMENTAL PARAMETERS (OIP)"
 	| "ION DETECTOR PARAMETERS"
 	| "OTHERS"
-	| "CALIBRATION PARAMETERS"
 	;
-
 
 data_section
 	=
@@ -111,6 +110,30 @@ meta_csv_body
 csv_line
 	=
 	@+:string {";" @+:string}+ eol
+	;
+
+calib_param_section
+	=
+	header:calib_param_section_header eol
+	empty_line
+	body:calib_param_section_body
+	empty_lines
+	;
+
+calib_param_section_header
+	=
+	header_begin @:"CALIBRATION PARAMETERS" header_end
+	;
+	
+calib_param_section_body
+	=
+	{species+:calib_species_subsection | lines+:meta_section_line}+
+	;
+
+calib_species_subsection
+	=
+	"Species" ";" name:non_empty_string ";" eol
+	{!"Species" params+:meta_section_line}+
 	;
 
 string::str
