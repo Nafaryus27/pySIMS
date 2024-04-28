@@ -1,6 +1,7 @@
 def _str2float(s: str) -> float:
     return float(s or 0)
 
+
 class Semantic:
     def __init__(self):
         pass
@@ -9,8 +10,8 @@ class Semantic:
         return [ast.param, ast.value]
 
     def meta_subsection(self, ast):
-        return(ast.name, dict(ast.lines))
-        
+        return (ast.name, dict(ast.lines))
+
     def meta_section(self, ast):
         params = dict(ast.body.lines)
         if ast.body.subsections:
@@ -35,17 +36,16 @@ class Semantic:
 
     def data_section(self, ast):
         body = ast.body
-        sample = body.sample
         raw_data = [list(map(_str2float, row)) for row in body.data]
 
         data_dict = dict()
         data_header = body.data_header
-        for i,e in enumerate(body.table_header):
+        for i, e in enumerate(body.table_header):
             elem = e[0]
             nb_columns = len(e[1])
-            values = lambda j : [row[i+j] for row in raw_data]
-            data_dict[elem] = {data_header[i+j]:values(j) for j in range(nb_columns)}
-        return(data_dict)
+            values = lambda j: [row[i + j] for row in raw_data]
+            data_dict[elem] = {data_header[i + j]: values(j) for j in range(nb_columns)}
+        return data_dict
 
     def start(self, ast):
         sections = ast.sections
@@ -56,5 +56,4 @@ class Semantic:
                 metadata.update(section["metadata"])
             if "data" in section:
                 data.update(section["data"])
-        return {"data":data,"metadata":metadata}
-
+        return {"data": data, "metadata": metadata}
