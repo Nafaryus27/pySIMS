@@ -1,6 +1,5 @@
-import tatsu
-
-_str2float = lambda s: float(s or 0)
+def _str2float(s: str) -> float:
+    return float(s or 0)
 
 class Semantic:
     def __init__(self):
@@ -58,9 +57,4 @@ class Semantic:
             if "data" in section:
                 data.update(section["data"])
         return {"data":data,"metadata":metadata}
-
-def parse_with_semantic(data, grammar):
-    parser = tatsu.compile(grammar)
-    ast = parser.parse(data, semantics=Semantic())
-    return(ast)
 
