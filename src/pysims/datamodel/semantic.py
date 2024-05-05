@@ -43,8 +43,8 @@ class Semantic:
         for i, e in enumerate(body.table_header):
             elem = e[0]
             nb_columns = len(e[1])
-            values = lambda j: [row[i + j] for row in raw_data]
-            data_dict[elem] = {data_header[i + j]: values(j) for j in range(nb_columns)}
+            values = lambda j: [row[i*nb_columns + j] for row in raw_data]
+            data_dict[elem] = {data_header[i*nb_columns + j]: values(j) for j in range(nb_columns)}
         return data_dict
 
     def start(self, ast):
