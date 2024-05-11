@@ -1,13 +1,19 @@
 class MassSpectrum(Crater):
+    def __init__(self, path: str):
+        super().__init__(self, path)
+        mass = self._raw_data["1"][_MASS] + self._raw_data["101"][_MASS]
+        intens = self._raw_data["1"][_INTENSITY] + self._raw_data["101"][_INTENSITY]
+        self._raw_data[_MASS] = mass 
+        self._raw_data[_INTENSITY] = intens
+       
 
     @property
     def mass(self) :
-        return self.get_attr(__MASS)
+        return self.get_attr(_MASS)
     
     @property
     def intensity(self) :
-        return self.get_attr(__INTENSITY)
-
+        return self.get_attr(_INTENSITY)
 
     
 
