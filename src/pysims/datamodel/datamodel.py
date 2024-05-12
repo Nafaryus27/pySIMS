@@ -1,7 +1,8 @@
-from json import dumps
 from dataclasses import dataclass
 from functools import wraps
 from typing import Any, Dict
+from json import dumps
+
 from .semantic import Semantic
 from .sims_parser import Parser
 
@@ -34,7 +35,7 @@ class Crater:
     This class is not meant to be used directly.
     """
     def __init__(self, path: str):
-        with open(path, "r", encoding="latin1") as f:
+        with open(path, "r", encoding="iso-8859-1") as f:
             raw = f.read()
 
         parser = Parser(semantics = Semantic())
