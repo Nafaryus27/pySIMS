@@ -1,5 +1,5 @@
 from pysims.datamodel.sims_parser import Parser
-from tatsu.util import asjson
+from pysims.datamodel.semantic import Semantic
 import pytest
 import json
 
@@ -13,7 +13,7 @@ ms_input = path_inputs + input_name + ".ms"
 nrj_input = path_inputs + input_name + ".nrj"
 
 # expected results files
-path_expected = "./files/parser_grammar_output/"
+path_expected = "./files/parser_semantic_output/"
 expected_name = "expected"
 dp_expected = path_expected + expected_name + "_dp.txt"
 ms_expected = path_expected + expected_name + "_ms.txt"
@@ -21,39 +21,38 @@ nrj_expected = path_expected + expected_name + "_nrj.txt"
 
 #=============================Unit Tests=============================#
 
-def test_parser_dp():
+def test_semantic_read_dp():
     with open(dp_input, 'r', encoding='iso-8859-1') as f:
         data = f.read()
         
     with open(dp_expected, 'r', encoding='iso-8859-1') as f:
         expected = json.loads(f.read())
 
-    parser = Parser()
-    output = asjson(parser.parse(data))
+    parser = Parser(semantics=Semantic())
+    output = parser.parse(data)
     assert output == expected, "Test parser output on .dp format failed"
-    
 
-def test_parser_ms():
+    
+def test_semantic_read_ms():
     with open(ms_input, 'r', encoding='iso-8859-1') as f:
         data = f.read()
         
     with open(ms_expected, 'r', encoding='iso-8859-1') as f:
         expected = json.loads(f.read())
 
-    parser = Parser()
-    output = asjson(parser.parse(data))
+    parser = Parser(semantics=Semantic())
+    output = parser.parse(data)
     assert output == expected, "Test parser output on .ms format failed"
 
-
-
-def test_parser_nrj():
+    
+def test_semantic_read_nrj():
     with open(nrj_input, 'r', encoding='iso-8859-1') as f:
         data = f.read()
         
     with open(nrj_expected, 'r', encoding='iso-8859-1') as f:
         expected = json.loads(f.read())
 
-    parser = Parser()
-    output = asjson(parser.parse(data))
+    parser = Parser(semantics=Semantic())
+    output = parser.parse(data)
     assert output == expected, "Test parser output on .nrj format failed"
-
+    
