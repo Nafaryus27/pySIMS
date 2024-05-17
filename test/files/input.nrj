@@ -1,0 +1,63 @@
+*** DATA FILES ***
+
+Param value;value
+Param no value;
+Param value semicolon;value;
+alpha low char;abcdefghijklmnopqrstuvwxyz
+alpha up char;ABCDEFGHIJKLMNOPQRSTUVWXYZ
+special char;,.:!?/-+|\_<>@*$%&"'#()[]{}
+,.:!?/-+|\_<>@*$%&"'#()[]{};
+abcdefghijqlmnopqrstuvwxyz;
+ABCDEFGHIJQLMNOPQRSTUVWXYZ;
+
+
+*** DATA START ***
+
+data_file_name.nrj
+Elem1;;
+Energy[eV];I[cnt/s];
+-5.00000E+01;6.00000E+01
+-4.90000E+01;5.00000E+01
+-4.80000E+01;4.00000E+01
+
+*** DATA END ***
+
+*** ANALYSIS POSITION ***
+
+Analysis position params;
+Subsection Test
+param1;0
+param2;1
+Other subsection
+param1;1
+param2;0
+
+*** ANALYSIS RECIPE ***
+
+Analysis recipe params;
+
+*** ACQUISITION PARAMETERS ***
+
+Analysis recipe params;
+
+*** MEASUREMENT CONDITIONS, E3SITEST84.nrj ***:
+
+Species;param1;param2
+Elem1;1.0000;1000
+
+*** MAIN ANALYTICAL PARAMETERS (MAP) ***
+
+MAP params;
+
+*** OPTIONAL INSTRUMENTAL PARAMETERS (OIP) ***
+
+OIP params;
+
+*** ION DETECTOR PARAMETERS ***
+
+Ion detector params;
+
+*** OTHERS ***
+
+Other params;
+

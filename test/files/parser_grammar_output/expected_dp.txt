@@ -1,0 +1,297 @@
+{
+  "sections": [
+    {
+      "metadata": {
+        "body": {
+          "lines": [
+            {
+              "param": "Param value",
+              "value": "value"
+            },
+            {
+              "param": "Param no value",
+              "value": ""
+            },
+            {
+              "param": "Param value semicolon",
+              "value": "value"
+            },
+            {
+              "param": "alpha low char",
+              "value": "abcdefghijklmnopqrstuvwxyz"
+            },
+            {
+              "param": "alpha up char",
+              "value": "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+            },
+            {
+              "param": "special char",
+              "value": ",.:!?/-+|\\_<>@*$%&\"'#()[]{}"
+            },
+            {
+              "param": ",.:!?/-+|\\_<>@*$%&\"'#()[]{}",
+              "value": ""
+            },
+            {
+              "param": "abcdefghijqlmnopqrstuvwxyz",
+              "value": ""
+            },
+            {
+              "param": "ABCDEFGHIJQLMNOPQRSTUVWXYZ",
+              "value": ""
+            }
+          ]
+        },
+        "header": "DATA FILES"
+      }
+    },
+    {
+      "data": {
+        "body": {
+          "data": [
+            [
+              "1.00000E+00",
+              "",
+              "0.10000E+00",
+              "4.00000E+00",
+              "",
+              "0.40000E+01",
+              ""
+            ],
+            [
+              "2.00000E+01",
+              "",
+              "0.20000E+00",
+              "5.00000E+01",
+              "",
+              "0.50000E+01",
+              ""
+            ],
+            [
+              "3.00000E+02",
+              "",
+              "0.30000E+00",
+              "6.00000E+02",
+              "",
+              "0.60000E+01",
+              ""
+            ]
+          ],
+          "data_header": [
+            "Time[s]",
+            "Depth[nm]",
+            "I[cnt/s]",
+            "Time[s]",
+            "Depth[nm]",
+            "I[cnt/s]"
+          ],
+          "sample": "data_file_name.dp",
+          "table_header": [
+            [
+              "Elem1",
+              [
+                ";",
+                ";",
+                ";"
+              ]
+            ],
+            [
+              "Elem2",
+              [
+                ";",
+                ";",
+                ";"
+              ]
+            ]
+          ]
+        },
+        "header": "DATA START"
+      }
+    },
+    {
+      "metadata": {
+        "body": {
+          "lines": [
+            {
+              "param": "Analysis position params",
+              "value": ""
+            }
+          ],
+          "subsections": [
+            {
+              "lines": [
+                {
+                  "param": "param1",
+                  "value": "0"
+                },
+                {
+                  "param": "param2",
+                  "value": "1"
+                }
+              ],
+              "name": "Subsection Test"
+            },
+            {
+              "lines": [
+                {
+                  "param": "param1",
+                  "value": "1"
+                },
+                {
+                  "param": "param2",
+                  "value": "0"
+                }
+              ],
+              "name": "Other subsection"
+            }
+          ]
+        },
+        "header": "ANALYSIS POSITION"
+      }
+    },
+    {
+      "metadata": {
+        "body": {
+          "lines": [
+            {
+              "param": "Analysis recipe params",
+              "value": ""
+            }
+          ]
+        },
+        "header": "ANALYSIS RECIPE"
+      }
+    },
+    {
+      "metadata": {
+        "body": {
+          "lines": [
+            {
+              "param": "Acquisition params",
+              "value": ""
+            }
+          ]
+        },
+        "header": "ACQUISITION PARAMETERS"
+      }
+    },
+    {
+      "metadata": {
+        "data": [
+          [
+            "Species",
+            "param1",
+            "param2"
+          ],
+          [
+            "Elem1",
+            "1.000",
+            "-1"
+          ],
+          [
+            "Elem2",
+            "2.000",
+            "-2"
+          ]
+        ],
+        "header": {
+          "file": "name.dp",
+          "section_name": "MEASUREMENT CONDITIONS"
+        }
+      }
+    },
+    {
+      "metadata": {
+        "body": {
+          "lines": [
+            {
+              "param": "MAP params",
+              "value": ""
+            }
+          ]
+        },
+        "header": "MAIN ANALYTICAL PARAMETERS (MAP)"
+      }
+    },
+    {
+      "metadata": {
+        "body": {
+          "lines": [
+            {
+              "param": "OIP params",
+              "value": ""
+            }
+          ]
+        },
+        "header": "OPTIONAL INSTRUMENTAL PARAMETERS (OIP)"
+      }
+    },
+    {
+      "metadata": {
+        "body": {
+          "lines": [
+            {
+              "param": "Ion detector params",
+              "value": ""
+            }
+          ]
+        },
+        "header": "ION DETECTOR PARAMETERS"
+      }
+    },
+    {
+      "metadata": {
+        "body": {
+          "lines": [
+            {
+              "param": "Other params",
+              "value": ""
+            }
+          ]
+        },
+        "header": "OTHERS"
+      }
+    },
+    {
+      "metadata": {
+        "body": {
+          "lines": [
+            {
+              "param": "Calibration params",
+              "value": ""
+            }
+          ],
+          "species": [
+            {
+              "name": "Elem1",
+              "params": [
+                {
+                  "param": "params1",
+                  "value": ""
+                },
+                {
+                  "param": "params2",
+                  "value": ""
+                }
+              ]
+            },
+            {
+              "name": "Elem2",
+              "params": [
+                {
+                  "param": "param1",
+                  "value": ""
+                },
+                {
+                  "param": "param2",
+                  "value": ""
+                }
+              ]
+            }
+          ]
+        },
+        "header": "CALIBRATION PARAMETERS"
+      }
+    }
+  ]
+}
