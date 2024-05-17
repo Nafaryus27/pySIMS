@@ -46,8 +46,8 @@ class Crater:
             err_msg = "Bad file format"
             note = "If the file is in the correct format, make sure it ends with and empty line"
             
-            e  = FileFormatError(err_msg).add_note(note)
-            raise e from exc
+            err  = FileFormatError(err_msg).add_note(note)
+            raise err from exc
 
         self._raw_data: Data_t = extract["data"]
         self._raw_metadata: Data_t = extract["metadata"]
