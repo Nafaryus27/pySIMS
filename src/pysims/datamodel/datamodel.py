@@ -6,7 +6,6 @@ import tatsu
 
 from .semantic import Semantic
 from .sims_parser import Parser
-from pysims.utils import * 
 
 # Type Aliases
 Data_t = Dict[str, list | Dict[str, list]]

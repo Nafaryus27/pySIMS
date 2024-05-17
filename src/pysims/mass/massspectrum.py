@@ -1,82 +1,122 @@
+from pprint import pprint
+import numpy as np
+
+from pysims.datamodel import Crater
+from pysims.utils import * 
+
+from .isotopes import *
+
+
 class MassSpectrum(Crater):
     def __init__(self, path: str):
-        super().__init__(self, path)
-        mass = self._raw_data["1"][_MASS] + self._raw_data["101"][_MASS]
-        intens = self._raw_data["1"][_INTENSITY] + self._raw_data["101"][_INTENSITY]
-        self._raw_data[_MASS] = mass 
-        self._raw_data[_INTENSITY] = intens
-       
+        Crater.__init__(self,path)
+        mass = self._raw_data["1"][MASS] + self._raw_data["101"][MASS]
+        intens = self._raw_data["1"][INTENSITY] + self._raw_data["101"][INTENSITY]
+        self._raw_data[MASS] = mass 
+        self._raw_data[INTENSITY] = intens
 
     @property
     def mass(self) :
-        return self.get_attr(_MASS)
+        return self._get_attr(MASS)
     
     @property
     def intensity(self) :
-        return self.get_attr(_INTENSITY)
+        return self._get_attr(INTENSITY)
 
+    def local_max(self, m_ref, n=32, DEBUG=False):
+        """
+        Calculate the local max intensity around a reference mass
+        (+/- 0.5 at. unit)
+
+        :param m_ref: the reference mass
+        :type m_ref: int
+
+        :param n: local intervall size
+        :type n: int
+
+        :param DEBUG: if set to true, prints additionnal debug infos
+        :type DEBUG: bool
+
+        :return: local max intensity and associated mass
+        :rtype: tuple
+        """
     
+        idx = int(self.mass.index(m_ref) - n / 2)
+        local_spectrum = self.intensity[idx : idx + n]
+        localmax_i = max(local_spectrum)
+        localmax_m = self.mass[local_spectrum.index(localmax_i) + idx]
+    
+        if DEBUG:
+            print(f"Integer mass {m_ref} located at index {idx}")
+            print(f"exp. intensity local max. intensity {localmax_i}\n")
+        return(localmax_m, localmax_i)
 
 
-def MassSpectrum_local_max(data: MassSpectrum, m_ref, n=32, DEBUG=False):
-    # returns the intensity of the mass spectrum around m_ref (+/- 0.5 at. unit)
-    idx = int(data.mass.index(m_ref) - n / 2)
-    if DEBUG:
-        print("Integer mass " + str(m_ref) + " located at index " + str(idx))
-    local_spectrum = data.intensity[idx : idx + n]
-    localmax_i = max(local_spectrum)
-    if DEBUG:
-        print("exp. intensity local max. intensity " + str(localmax_i))
-    localmax_m = data.mass[local_spectrum.index(localmax_i) + idx]
-    return localmax_m, localmax_i
+    def deviation_to_natural_abundance(self, ref: str, relevance_threshold=100, n=16, DEBUG=False):
+        """
+        Calculate the standard deviation of experimental mass spectrum
+        to natural abundance for a specific element
 
+        :param ref: the reference element
+        :type ref: str
 
+        :param relevance_threshold: threshold below which the
+            experimental intensity is not relevant
+        :type relevance_threshold: float | int
 
-def deviation_to_natural_abundance(data: MassSpectrum, ref, table_iso, n=32, PRINT=False):
-    names_iso, masses_iso, abondances_iso = table_iso
-    int_mass, elem = read_isotope_reference(ref)
-    relevance_threshold = 100
+        :param n: local intervall size for local max evaluation
+        :type n: int
 
-    # calcul les rapports isotopiques naturels
-    minors = []  # other isotopes than reference
-    for iso in names_iso:
-        if elem in iso:
-            if iso != ref:
-                minors.append(iso)
-    if PRINT:
-        print(minors)
+        :param DEBUG: if set, prints additionnal debug infos
+        :type DEBUG: bool
+        """
+        int_mass, elem = read_isotope_ref(ref)
+    
+        # reference abundance
+        ref_intens_theo = get_isotope_abundance(ref)
+        ref_int_mass_expe, ref_intens_expe = self.local_max(int_mass,
+                                                            n=n,
+                                                            DEBUG=DEBUG)
+        if DEBUG:
+            print(ref, ref_intens_theo, ref_intens_expe)
 
-    # reference abundance
-    idx = names_iso.index(ref)
-    ref_intens_theo = abondances_iso[idx]
-    ref_int_mass_expe, ref_intens_expe = MassSpectrum_local_max(
-        data, int_mass, n=n, DEBUG=PRINT
-    )
+        # test intensity relevance
+        if ref_intens_expe <= relevance_threshold:
+            return -1 
 
-    var_ionic_interference = 0
-    if PRINT:
-        print(ref, ref_intens_theo, ref_intens_expe)
-    if ref_intens_expe > relevance_threshold:
-        for minor in minors:
-            idx = names_iso.index(minor)
-            minor_int_mass_theo = masses_iso[idx]
-            minor_intens_theo = abondances_iso[idx]
-            minor_int_mass_expe, minor_intens_expe = MassSpectrum_local_max(
-                data, np.round(minor_int_mass_theo), n=n, DEBUG=PRINT
+        minors = get_minors_isotopes(ref)
+        if DEBUG:
+            pprint(minors)
+            
+        var_ionic_interference = 0
+        for iso in minors:
+            minor_int_mass_theo = np.round(iso.mass)
+            minor_intens_theo = iso.abundance
+            minor_int_mass_expe, minor_intens_expe = self.local_max(
+                minor_int_mass_theo,
+                n=n,
+                DEBUG=DEBUG
             )
             r_theo = minor_intens_theo / ref_intens_theo
             r_expe = minor_intens_expe / ref_intens_expe
-            if PRINT:
-                print(minor, minor_intens_theo, minor_intens_expe)
-            if PRINT:
-                print(f" : r_theo = {r_theo:.2e}" + f" : r_expe = {r_expe:.2e}")
             var_ionic_interference += ((r_expe - r_theo) / r_theo) ** 2
-            if PRINT:
-                print((r_expe - r_theo) / r_theo)
-
+            
+            if DEBUG:
+                print(str(iso.mass_number)+elem, minor_intens_theo, minor_intens_expe)
+                print(f" : r_theo = {r_theo:.2e}" + f" : r_expe = {r_expe:.2e}")
+                print("relative err : ", abs(r_expe - r_theo) / r_theo, "\n")
+                
         sigma_ionic_interference = np.sqrt(var_ionic_interference / len(minors))
-    else:
-        sigma_ionic_interference = -1
-    if PRINT:
-        print(f"std dev = {sigma_ionic_interference * 100:.1f} %")
-    return sigma_ionic_interference
+        if DEBUG:
+            print(f"std dev = {sigma_ionic_interference * 100:.1f} %")
+            
+        return sigma_ionic_interference
+
+
+# TODO
+"""
+Add plot_natural_abundance()
+
+Takes data and ref and draw marks for natural abundance (normalized)
+plot region is "centered" around ref
+"""
