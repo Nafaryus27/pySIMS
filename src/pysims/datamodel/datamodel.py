@@ -19,20 +19,21 @@ class FileFormatError(Exception):
 class Crater:
     """
     This is the generic data model class, which is inherited by
-    DepthProfiles, MassSpectrum and EnergySpectrum.  It is used to
-    hold the raw data and metadata along with the results of
-    processings applied on data.  Those results are stored in the
-    _properties dictionnary.
+    DepthProfiles, MassSpectrum and EnergySpectrum.  It contains the
+    raw data and metadata along with the results of processings
+    applied on data.  Those results are stored in the _properties
+    dictionnary.
 
-    :param path: path to data file (must be in the CAMECA .ms,.dp or
+    .. note::
+
+        This class is not meant to be used directly.
+
+    :param path: path to data file (must be in the CAMECA .ms, .dp or
         .nrj ascii file format)
     :type path: str
 
-    :rtype: None
-
-        .. note::
-
-        This class is not meant to be used directly.
+    :raises FileFormatError: if the given file does not follow the
+        right format
     """
     def __init__(self, path: str):
         with open(path, "r", encoding="iso-8859-1") as f:
@@ -59,31 +60,29 @@ class Crater:
     @property
     def data(self) -> Data_t:
         """
-        Returns a copy of the internal _data dictionnary.
+        Returns a copy of the internal ``_data`` dictionnary.
 
         :rtype: Data_t
         """
         return self._raw_data.copy()
 
     @property
+    def metadata(self) -> Data_t:
+        """
+        Returns a copy of the internal ``_metadata`` dictionnary.
+
+        :rtype: Data_t
+        """
+        return self._raw_metadata.copy()
+    
+    @property
     def properties(self) -> Dict[str, Any]:
         """
-        Returns a copy of the internal _properties dictionnary.
+        Returns the internal _properties dictionnary.
 
         :rtype: Dict[str, Record]
         """
-        return self._properties.copy()
-
-    def get_property(self, name: str) -> Any:
-        """
-        Returns the result of a caclulated property of data.
-        
-        :param name: the name of the property
-        :type name: str
-
-        :rtype:
-        """
-        return self._properties[name]
+        return self._properties
 
     def _get_attr(self, attr) -> list | dict:
         """
@@ -95,7 +94,7 @@ class Crater:
 
         :rtype: list | dict
         """
-        return self._raw_data[attr].copy()
+        return self._raw_data[attr].copy()    
     
     def _get_elem_attr(self, elem, attr) -> list:
         """
