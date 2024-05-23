@@ -1,3 +1,9 @@
+#====================================================================#
+#                                                                    #
+#       This file contains the code for mass spectrum analysis       #
+#                                                                    #
+#====================================================================#
+
 from pprint import pprint
 import numpy as np
 
