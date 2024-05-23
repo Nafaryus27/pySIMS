@@ -23,17 +23,18 @@ class DepthProfiles(Crater) :
     def __init__(self, path):
         super().__init__(path)
         self._properties = {
-            "plateaux indices" : {},
+            "plateaux indices": {},
             "plateaux" : {},
-            "standard deviation" : {},
-            "interfaces" : {},
-            "ideal time" : {},
-            "ideal depth" : {},
-            "ideal intens in time" : {},
-            "ideal intens in depth" : {}
+            "standard deviation": {},
+            "interfaces": {},
+            "ideal time": {},
+            "ideal depth": {},
+            "ideal intens in time": {},
+            "ideal intens in depth": {},
+            "calculated depth": {}
         }
 
-    def get_elem_list(self) -> list:
+    def get_list_elem(self) -> list:
         """
         Returns the list of the elements that are in the analysis
 
@@ -73,7 +74,10 @@ class DepthProfiles(Crater) :
 
         :rtype: list
         """
-        return self._get_elem_attr(elem, DEPTH)
+        if elem in self.properties["calculated depth"]:
+            return self.properties["calculated depth"][elem]
+        else:
+            return self._get_elem_attr(elem, DEPTH)
 
     #====================== Plateaux detection ======================#
 
@@ -90,9 +94,8 @@ class DepthProfiles(Crater) :
         :param elem: the element which interfaces we want to locate
         :type elem: str
 
-        :param prominence: specifies how much a peak needs to stand
-            out relative to other peaks to be detected .  Must be
-            between 0 and 1.
+        :param prominence: sensitivity of interface detection. Must be
+            between 0 and 1, lower value means more sensitivity.
         :type prominence: float
 
         :rtype: list
@@ -129,9 +132,8 @@ class DepthProfiles(Crater) :
             interfaces
         :type interfaces_margin: int
 
-        :param prominence: specifies how much a peak needs to stand
-            out relative to other peaks to be detected .  Must be
-            between 0 and 1.
+        :param prominence: sensitivity of interface detection. Must be
+            between 0 and 1, lower value means more sensitivity.
         :type prominence: float
 
         :rtype: list
@@ -170,9 +172,8 @@ class DepthProfiles(Crater) :
             plateaux
         :type interfaces_margin: int
 
-        :param prominence: specifies how much a peak needs to stand
-            out relative to other peaks to be detected .  Must be
-            between 0 and 1.
+        :param prominence: sensitivity of interface detection. Must be
+            between 0 and 1, lower value means more sensitivity.
         :type prominence: float
 
         :rtype: list
@@ -211,9 +212,8 @@ class DepthProfiles(Crater) :
             plateaux
         :type interfaces_margin: int
 
-        :param prominence:  specifies how much a peak needs to stand
-            out relative to other peaks to be detected .  Must be
-            between 0 and 1.
+        :param prominence:  sensitivity of interface detection. Must be
+            between 0 and 1, lower value means more sensitivity.
         :type prominence: float
 
         :rtype: list
@@ -231,6 +231,50 @@ class DepthProfiles(Crater) :
         return std
 
     #=================== Ideal profile generation ===================#
+
+    def calculate_profile_depth(
+                self,
+                elem: str,
+                mining_speeds: list,
+                min_interface_idx: int = 20,
+                prominence: float = 0.2
+    ) -> list:
+        """
+        Given a list containing the mining speed for each layers,
+        calculates the depths for the given element.
+
+        :param elem: the element
+        :type elem: str
+
+        :param mining_speeds: the list of the mining speeds of each
+            layers
+        :type mining_speeds: list
+
+        :param min_interface_idx: minimum interface index below which
+            it is considered to be at 0
+        :type min_interface_idx: int
+
+        :param prominence: sensitivity of interface detection. Must be
+            between 0 and 1, lower value means more sensitivity.
+        :type prominence: float
+        """
+
+        time = self.time(elem)
+        interfaces = self.locate_interfaces(elem, prominence)
+        
+        if interfaces[0] < min_interface_idx:
+            interfaces[0] = 1
+        else:
+            interfaces.insert(0,1)
+        interfaces.append(len(time)-1)
+
+        depth = [0]
+        for inter in range(len(interfaces) - 1):
+            for i in range(interfaces[inter], interfaces[inter+1]+1):
+                depth.append(depth[-1] + mining_speeds[inter] * (time[i] - time[i-1]))
+
+        self.properties["calculated depth"][elem] = depth
+        return depth
     
     def generate_ideal_profile(
                 self,
@@ -277,8 +321,8 @@ class DepthProfiles(Crater) :
             clamp the plateaux to the limits of the time/depth region
         :type min_plateau_width: int
 
-        :param prominence: prominence value to select the peaks to
-            detect.  Must be between 0 and 1.
+        :param prominence: sensitivity of interface detection. Must be
+            between 0 and 1, lower value means more sensitivity.
         :type prominence: float
 
         :rtype: tuple
