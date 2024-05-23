@@ -6,4 +6,4 @@ Multilayer Analysis
    :maxdepth: 2
    :caption: Code Structure
 
-   multilayer
+   depthprofile

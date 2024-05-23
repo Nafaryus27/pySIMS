@@ -14,8 +14,8 @@ sys.path.insert(0, os.path.abspath("../../"))
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = 'PySIMS'
-copyright = '2024, Toto'
-author = 'Toto'
+copyright = '2024'
+author = 'Nathan Gilles--Lordet, Mahé Castrec, César Pitigliano'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration

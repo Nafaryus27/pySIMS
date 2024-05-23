@@ -123,7 +123,7 @@ class DepthProfiles(Crater) :
 
         .. note::
 
-            ``prominence`` are only used for interfaces detection
+            ``prominence`` is only used for interfaces detection
 
         :param elem: the element
         :type elem: str
@@ -203,7 +203,7 @@ class DepthProfiles(Crater) :
 
         .. note::
 
-            ``prominence`` are only used for interfaces/plateaux detection
+            ``prominence`` is only used for interfaces/plateaux detection
 
         :param elem: the element
         :type elem: str
@@ -292,7 +292,7 @@ class DepthProfiles(Crater) :
 
         .. note::
 
-            ``prominence`` are only used for interfaces/plateaux detection
+            ``prominence`` is only used for interfaces/plateaux detection
 
         :param profile_type: the type of profile to generate.  Must be
             either ``'time'``or ``'depth'``
@@ -304,7 +304,7 @@ class DepthProfiles(Crater) :
         :param n_ideal: the ideal profile resolution
         :type n_ideal: int
 
-        :param shift: $$(1 + shift)$$ factor by which the experimental
+        :param shift: factor by which the experimental
             values will be shifted.
 
         :type shift_Time: float
@@ -436,7 +436,7 @@ def get_ideal_interface_indices(
     :param interfaces: the list of interfaces indices in the
         experimental data
 
-    :param shift: $$(1 + shift)$$ factor by which the experimental
+    :param shift: factor by which the experimental
         values will be shifted
     :type shift: float
     """

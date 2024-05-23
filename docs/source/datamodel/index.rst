@@ -7,4 +7,5 @@ Data model and parser
    :caption: Code Structure
 
    datamodel
+   grammar
    semantic

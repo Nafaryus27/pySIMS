@@ -8,6 +8,12 @@ Welcome to PySIMS's documentation!
 
 .. toctree::
    :maxdepth: 2
+   :caption: Description:
+
+   structure
+
+.. toctree::
+   :maxdepth: 2
    :caption: Code Structure:
 
    datamodel/index
@@ -15,9 +21,3 @@ Welcome to PySIMS's documentation!
    mass/index
    energy/index
    
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
