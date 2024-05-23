@@ -7,8 +7,6 @@
 from pysims.datamodel import Crater
 from pysims.utils import * 
 
-from .isotopes import *
-
 class EnergySpectrum(Crater):
     """
     Main class used for energy analysis, contains the raw data and the
