@@ -111,12 +111,3 @@ class MassSpectrum(Crater):
             print(f"std dev = {sigma_ionic_interference * 100:.1f} %")
             
         return sigma_ionic_interference
-
-
-# TODO
-"""
-Add plot_natural_abundance()
-
-Takes data and ref and draw marks for natural abundance (normalized)
-plot region is "centered" around ref
-"""
