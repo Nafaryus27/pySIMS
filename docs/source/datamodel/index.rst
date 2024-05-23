@@ -8,10 +8,3 @@ Data model and parser
 
    datamodel
    semantic
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`

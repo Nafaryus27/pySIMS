@@ -11,7 +11,10 @@ Welcome to PySIMS's documentation!
    :caption: Code Structure:
 
    datamodel/index
-
+   multilayer/index
+   mass/index
+   energy/index
+   
 Indices and tables
 ==================
 
