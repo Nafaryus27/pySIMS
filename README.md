@@ -13,6 +13,6 @@ source ./venv/bin/activate
 pip3 install -r requirements.txt
 cd src/pysims/datamodel
 python3 -m tatsu grammar.ebnf --generate-parser --outfile sims_parser.py
-cd PYSIMS_DIR
+cd $PYSIMS_DIR
 pip3 install .
 ```
