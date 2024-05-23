@@ -19,9 +19,25 @@ class EnergySpectrum(Crater):
     """
     
     @property
-    def energy(self) :
-        return self._get_attr(ENERGY)
+    def energy(self, elem: str):
+        """
+        Getter method to acces the energy values for an element
+
+        :param elem: the element
+        :type elem: str
+
+        :rtype: list
+        """
+        return self._get_elem_attr(elem, ENERGY)
     
     @property
-    def intensity(self) :
-        return self._get_attr(INTENSITY)
+    def intensity(self, elem: str):
+        """
+        Getter method to acces the intensity values for an element
+
+        :param elem: the element
+        :type elem: str
+
+        :rtype: list
+        """
+        return self._get_elem_attr(elem, INTENSITY)
