@@ -5,7 +5,7 @@
 #====================================================================#
 
 import numpy as np
-import scipy.signal as sig
+from scipy.signal import find_peaks
 from scipy.ndimage import uniform_filter1d
 
 from pysims.utils import *
@@ -16,6 +16,9 @@ class DepthProfiles(Crater) :
     """
     Main class used for multilayer analysis, contains the raw data and
     the results of the processings applied on data.
+
+    :param path: the path of the depthprofile ascii file
+    :type path: str
     """
     def __init__(self, path):
         super().__init__(path)
@@ -23,8 +26,20 @@ class DepthProfiles(Crater) :
             "plateaux indices" : {},
             "plateaux" : {},
             "standard deviation" : {},
-            "interfaces" : {}
+            "interfaces" : {},
+            "ideal time" : {},
+            "ideal depth" : {},
+            "ideal intens in time" : {},
+            "ideal intens in depth" : {}
         }
+
+    def get_elem_list(self) -> list:
+        """
+        Returns the list of the elements that are in the analysis
+
+        :rtype: list
+        """
+        return list(self.data.keys())
     
     def intensity(self, elem: str) -> list:
         """
@@ -58,9 +73,15 @@ class DepthProfiles(Crater) :
 
         :rtype: list
         """
-        return self._get_elem_attr(elem, DEPTH)    
+        return self._get_elem_attr(elem, DEPTH)
 
-    def locate_interfaces(self, elem: str, noise_filter_size=5, prominence=0.5) -> list:
+    #====================== Plateaux detection ======================#
+
+    def locate_interfaces(
+                self,
+                elem: str,
+                prominence: float = 0.2
+    ) -> list:
         """
         Detects interfaces between plateaux.  The method used is to
         filter the noise, calculate the gradient of the filtered
@@ -69,27 +90,37 @@ class DepthProfiles(Crater) :
         :param elem: the element which interfaces we want to locate
         :type elem: str
 
-        :param noise_filter_size: the size of the filter applied for
-            noise reduction
-        :type noise_filter_size: int
-
-        :param prominence: prominence value to select the peaks to
-            detect.  Must be between 0 and 1.
+        :param prominence: specifies how much a peak needs to stand
+            out relative to other peaks to be detected .  Must be
+            between 0 and 1.
         :type prominence: float
+
+        :rtype: list
         """
+        
         y = self.intensity(elem)
-        smoothed_y = uniform_filter1d(y, size=noise_filter_size)
-        gradient = normalize(np.abs(np.gradient(smoothed_y)))
-        interfaces = list(sig.find_peaks(gradient, prominence=prominence)[0])
+        # smoothed_y = uniform_filter1d(y, size=noise_filter_size)
+        gradient = normalize(np.abs(np.gradient(y)))
+        interfaces = list(find_peaks(gradient, prominence=prominence, distance=10)[0])
         
         self.properties["interfaces"][elem] = interfaces
         return interfaces
     
-    def get_plateaux_indices(self, elem: str, interfaces_margin: int) -> list:
+    def get_plateaux_indices(
+                self,
+                elem: str,
+                interfaces_margin: int,
+                prominence: float = 0.2
+    ) -> list:
         """
         Returns the indices of the limits of all plateaux for the
-        given element, minus the interfaces_margin.  The results is a
-        list of tuples of the indices of each plateau.
+        given element, +/- the interfaces_margin.  The results is a
+        list of tuples containing the start and end indices of each
+        plateau.
+
+        .. note::
+
+            ``prominence`` are only used for interfaces detection
 
         :param elem: the element
         :type elem: str
@@ -98,21 +129,39 @@ class DepthProfiles(Crater) :
             interfaces
         :type interfaces_margin: int
 
+        :param prominence: specifies how much a peak needs to stand
+            out relative to other peaks to be detected .  Must be
+            between 0 and 1.
+        :type prominence: float
+
         :rtype: list
         """
-        interfaces = self.locate_interfaces(elem)
+        
+        interfaces = self.locate_interfaces(elem, prominence)
         interfaces.append(len(self.intensity(elem)) - 1)
-        list_indices = [
-            (interfaces[i] + interfaces_margin, interfaces[i+1] - interfaces_margin)
-            for i in range(len(interfaces)-1)
-        ]           
+
+        list_indices = []
+        for i in range(len(interfaces) -1):
+            start = interfaces[i] + interfaces_margin
+            end = interfaces[i+1] - interfaces_margin
+            list_indices.append((start, end))
+
         
         self.properties["plateaux indices"][elem] = list_indices
         return list_indices
 
-    def get_plateaux(self, elem: str, interfaces_margin: int):
+    def get_plateaux(
+                self,
+                elem: str,
+                interfaces_margin: int,
+                prominence: float = 0.2
+    ) -> list:
         """
-        Calculate the values of all the plateaux for the given element
+        Calculate the value of each plateau for the given element
+
+        .. note::
+
+            ``prominence`` is only used for interfaces detection
 
         :param elem: the element
         :type elem: str
@@ -120,27 +169,147 @@ class DepthProfiles(Crater) :
         :param interfaces_margin: the margin to apply to the detected
             plateaux
         :type interfaces_margin: int
+
+        :param prominence: specifies how much a peak needs to stand
+            out relative to other peaks to be detected .  Must be
+            between 0 and 1.
+        :type prominence: float
+
+        :rtype: list
         """
+        
+        plateaux_indices = self.get_plateaux_indices(elem,
+                                                     interfaces_margin,
+                                                     prominence)
+        
         plateaux = []
-        for indices in self.get_plateaux_indices(elem, interfaces_margin):
+        for indices in plateaux_indices:
             plateaux.append(
                 calculate_plateau_value(self.intensity(elem), indices)
             )
         self.properties["plateaux"][elem] = plateaux
         return plateaux
 
-    def get_plateaux_std(self, elem: str, interfaces_margin: int):
+    def get_plateaux_std(
+                self,
+                elem: str,
+                interfaces_margin: int,
+                prominence: float = 0.2
+    ) -> list:
+        """
+        Calculate the standard deviation of each plateau for the given
+        element
+
+        .. note::
+
+            ``prominence`` are only used for interfaces/plateaux detection
+
+        :param elem: the element
+        :type elem: str
+
+        :param interfaces_margin: the margin to apply to the detected
+            plateaux
+        :type interfaces_margin: int
+
+        :param prominence:  specifies how much a peak needs to stand
+            out relative to other peaks to be detected .  Must be
+            between 0 and 1.
+        :type prominence: float
+
+        :rtype: list
+        """
+        
         std = []
-        for indices in self.get_plateaux_indices(elem, interfaces_margin):
+        plateaux_indices = self.get_plateaux_indices(elem,
+                                                     interfaces_margin,
+                                                     prominence)
+        for indices in plateaux_indices:
             std.append(
                 calculate_std(self.intensity(elem), indices)
             )
         self.properties["standard deviation"][elem] = std
         return std
 
-   
+    #=================== Ideal profile generation ===================#
+    
+    def generate_ideal_profile(
+                self,
+                profile_type: str,
+                elem: str,
+                n_ideal: int, 
+                shift: float = 0,
+                interfaces_margin: int = 5,
+                cancellation_thresh: float = 1e-3,
+                prominence: float = 0.2
+    ) -> tuple:
+        """
+        Generate the ideal profile intensity, and time or depth for the
+        given element.  Returns the tuple (Tideal|Dideal, Iideal)
 
-#======================== calculus functions ========================#
+        .. note::
+
+            ``prominence`` are only used for interfaces/plateaux detection
+
+        :param profile_type: the type of profile to generate.  Must be
+            either ``'time'``or ``'depth'``
+        :type profile_type: str
+
+        :param elem: the element
+        :type elem: str
+
+        :param n_ideal: the ideal profile resolution
+        :type n_ideal: int
+
+        :param shift: $$(1 + shift)$$ factor by which the experimental
+            values will be shifted.
+
+        :type shift_Time: float
+
+        :param interfaces_margin: the margin the apply to the detected
+            interfaces
+        :type interfaces_margin: int
+
+        :param cancellation_thresh: threshold bellow which a plateau
+            is considered to be null
+        :type cancellation_thresh: float
+
+        :param min_plateau_width: minimum width of a plateau, used to
+            clamp the plateaux to the limits of the time/depth region
+        :type min_plateau_width: int
+
+        :param prominence: prominence value to select the peaks to
+            detect.  Must be between 0 and 1.
+        :type prominence: float
+
+        :rtype: tuple
+        """
+
+        interfaces = self.locate_interfaces(elem, prominence)
+        plateaux = self.get_plateaux(elem, interfaces_margin, prominence)
+        
+        exp = self.__getattribute__(profile_type)(elem)
+        ideal = np.linspace(exp[0], exp[-1], n_ideal)
+
+        # get indices of interfaces in Tideal
+        idx_ideal = get_ideal_interface_indices(interfaces, exp, ideal, shift)
+        idx_ideal.append(n_ideal) # add end indices to fully delimit the plateaux
+        
+        # calculate ideal intensity
+        Iideal = np.ones(n_ideal)
+        for i, plateau in enumerate(plateaux): 
+            if plateau > cancellation_thresh:
+                start = idx_ideal[i]
+                end = idx_ideal[i+1]
+                Iideal[start : end] *= plateau
+
+        self.properties["ideal " + profile_type][elem] = ideal
+        self.properties["ideal intens in " + profile_type][elem] = Iideal
+        return ideal, Iideal
+
+
+    
+#===================== calculus/utils functions =====================#
+
 
 def normalize(array: np.ndarray) -> np.ndarray:
     """
@@ -155,153 +324,80 @@ def normalize(array: np.ndarray) -> np.ndarray:
     M = np.max(array)
     return (array - m)/(M - m)
 
-def calculate_plateau_value(intens: list, indices: list) -> float:
-    """
-    Calculate the mean of the intensity between the given indices
 
-    :param intens: the intensity list
-    :type intens: list
+def calculate_plateau_value(array: list, indices: tuple) -> float:
+    """
+    Calculate the mean of the array values between the given indices
+
+    :param array: a list of float or int values
+    :type array: list
 
     :param indices: the indices of the plateaux
-    :type indices: list
+    :type indices: tuple
 
     :rtype: float
     """
-    return np.asarray(intens[indices[0] : indices[1]]).mean()
+    return np.mean(array[indices[0] : indices[1]])
 
-def calculate_std(intens, indices):
+
+def calculate_std(array: list, indices: tuple) -> float:
     """
     Calculate the standard deviation of the intensity between the given indices
 
-    :param intens: the intensity list
-    :type intens: list
+    :param array: a list of float or int values
+    :type array: list
 
     :param indices: the indices of the plateaux
-    :type indices: list
+    :type indices: tuple
 
     :rtype: float
     """
-    return np.std(intens[indices[0] : indices[1]])
+    return np.std(array[indices[0] : indices[1]])
 
 
 
-#====================================================================#
-#                                                                    #
-#                     Ideal Profiles Generation                      #
-#                                                                    #
-#====================================================================#
+#============= Ideal Profiles Generation utils functions ============#
+
+def index_of_closest_element(value: float, array: list) -> int:
+    """
+    Return the index of the closest element to value in the given
+    array
+
+    :param value: the value which index is to be found
+    :type value: float
+
+    :param array: a list of float
+    :type array: list
+    """
+    return min(range(len(array)), key=lambda i: abs(array[i] - value))
 
 
-def get_interface_indices_in_ideal_profile(
-    data: DepthProfiles,
-    elem: str,
-    Tideal: list,
-    shift: float = 0
-):
+def get_ideal_interface_indices(
+    interfaces: list,
+    exp: list,
+    ideal: list,
+    shift: float = 0,
+) -> list:
+    """
+    Find the index of the interfaces in the generated ideal profile
+    for the given element, with the possibility to shift the
+    experimental values if necessary.
+
+    :param exp: the eperimental values
+    :type exp: list
+
+    :param ideal: the generated ideal values
+    :type ideal: list
+
+    :param interfaces: the list of interfaces indices in the
+        experimental data
+
+    :param shift: $$(1 + shift)$$ factor by which the experimental
+        values will be shifted
+    :type shift: float
+    """
     idx_ideal = []
-    for interface in data.locate_interfaces(elem):
-        idx = 0
-        while Tideal[idx] < data.time(elem)[interface] * (1 + shift):
-            idx += 1
+    for i in interfaces:
+        idx = index_of_closest_element(exp[i] * (1 + shift), ideal)
         idx_ideal.append(idx)
     return idx_ideal
-
-
-def get_interface_indices_in_ideal_profile_depth(
-    data: DepthProfiles,
-    elem: str,
-    Dideal: list,
-    shift=0,
-):
-    
-    idx_ideal = []
-    for interface in data.locate_interfaces(elem):
-        idx = 0
-        while Dideal[idx] < data.depth(elem)[interface] * (1 + shift):
-            idx += 1
-        idx_ideal.append(idx)
-    return idx_ideal
-
-
-def generate_ideal_profile(
-    data : DepthProfiles,
-    n_ideal,
-    elem,
-    shift=0,
-    interface_margin=5,
-    cancellation_thresh=1e-3,
-):
-    # x-axis for ideal profile
-    exp_time = data.time(elem)
-    Tideal = np.linspace(exp_time[0], exp_time[-1], n_ideal )
-    
-    # get indices of interfaces in Tideal
-    idx_ideal = data.get_interface_indices_in_ideal_profile(data, elem, Tideal, shift)
-    
-    # get profiles plateaux values
-    list_indices = data.indices_plateaux(elem, interface_margin)
-    plateaux = data.get_plateaux(elem)
-    
-    # define y-axis array
-    Iideal = np.ones(n_ideal)
-    if plateaux[0] > cancellation_thresh:
-        Iideal[0 : idx_ideal[0]] *= plateaux[0]
-    if plateaux[1] > cancellation_thresh:
-        Iideal[idx_ideal[0] : idx_ideal[1]] *= plateaux[1]
-    if plateaux[2] > cancellation_thresh:
-        Iideal[idx_ideal[1] :] *= plateaux[elem][2]
-
-    return Tideal, Iideal
-
-
-def calculate_profile_depth(time, vitesses, idx_interfaces):
-    depth = (0,)
-
-    for i in range(1, idx_interfaces[0]):
-        depth += (depth[-1] + vitesses[0] * (time[i] - time[i - 1]),)
-
-    for inter in range(1, len(idx_interfaces)):
-        for i in range(idx_interfaces[inter - 1], idx_interfaces[inter]):
-            depth += (depth[-1] + vitesses[inter] * (time[i] - time[i - 1]),)
-
-    for i in range(idx_interfaces[-1], len(time)):
-        depth += (depth[-1] + vitesses[-1] * (time[i] - time[i - 1]),)
-    return depth
-
-def generate_ideal_profile_depth(
-    data: DepthProfiles,
-    n_ideal,
-    elem,
-    ref,
-    interface_margin,
-    shift=0,
-    cancellation_thresh=1e-3,
-    DEBUG=False,
-):
-    # x-axis for ideal profile
-    Dideal = np.linspace(
-        data.depth(elem)[0], data.depth(elem)[-1], n_ideal
-    )
-    # set interface locations in ideal x-axis
-    interfaces = locate_interfaces(data, ref)
-    
-    # get indices of interfaces in Tideal
-    idx_ideal = get_interface_indices_in_ideal_profile_depth(data,
-        interfaces, Dideal, elem=elem, shift=shift, DEBUG=DEBUG
-    )
-    # get profiles plateaux values
-    list_indices = indices_plateaux(data, interface_margin, elem)
-    plateaux = get_all_plateaux(data, list_indices, elem)
-    
-    # define y-axis array
-    Iideal = np.ones(n_ideal)
-    if plateaux[elem][0] > cancellation_thresh:
-        Iideal[0 : idx_ideal[0]] *= plateaux[elem][0]
-    if plateaux[elem][1] > cancellation_thresh:
-        Iideal[idx_ideal[0] : idx_ideal[1]] *= plateaux[elem][1]
-    if plateaux[elem][2] > cancellation_thresh:
-        Iideal[idx_ideal[1] :] *= plateaux[elem][2]
-
-    return Dideal, Iideal
-
-
